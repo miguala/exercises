@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -16,8 +15,7 @@ func handler(ctx context.Context, e events.SNSEvent) {
 	db := dynamodb.New(sess)
 
 	for _, record := range e.Records {
-		var contactID string
-		json.Unmarshal([]byte(record.SNS.Message), &contactID)
+		contactID := record.SNS.Message
 
 		input := &dynamodb.UpdateItemInput{
 			TableName: aws.String("Contacts8a"),
