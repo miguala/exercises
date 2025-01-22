@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"os"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -13,6 +14,7 @@ import (
 func handler(ctx context.Context, e events.DynamoDBEvent) {
 	sess := session.Must(session.NewSession())
 	svc := sns.New(sess)
+	topicArn := os.Getenv("SNS_TOPIC_ARN")
 
 	for _, record := range e.Records {
 		if record.EventName == "INSERT" {
@@ -20,7 +22,7 @@ func handler(ctx context.Context, e events.DynamoDBEvent) {
 
 			svc.Publish(&sns.PublishInput{
 				Message:  aws.String(id),
-				TopicArn: aws.String("arn:aws:sns:us-east-1:ACCOUNT_ID:ContactsTopic"),
+				TopicArn: aws.String(topicArn),
 			})
 		}
 	}

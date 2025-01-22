@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"os"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -28,9 +29,10 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 
 	contact.ID = uuid.New().String()
 	contact.Status = "CREATED"
+	tableName := os.Getenv("TABLE_NAME")
 
 	input := &dynamodb.PutItemInput{
-		TableName: aws.String("Contacts8a"), // Cambia aquí
+		TableName: aws.String(tableName),
 		Item: map[string]*dynamodb.AttributeValue{
 			"id":        {S: aws.String(contact.ID)},
 			"firstName": {S: aws.String(contact.FirstName)},
