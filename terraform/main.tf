@@ -49,10 +49,22 @@ resource "aws_iam_role_policy_attachment" "lambda_dynamodb" {
   policy_arn = aws_iam_policy.dynamodb_access.arn
 }
 
-# Adjuntar la política básica de ejecución de Lambda para CloudWatch Logs
-resource "aws_iam_role_policy_attachment" "lambda_logs" {
-  role       = aws_iam_role.lambda_role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+# Crear grupos de logs con retención de 7 días
+resource "aws_cloudwatch_log_group" "lambda_logs" {
+  for_each = toset([
+    aws_lambda_function.create_contact8a.function_name,
+    aws_lambda_function.get_contact8a.function_name,
+    aws_lambda_function.dynamodb8a_trigger.function_name,
+    aws_lambda_function.sns8a_trigger.function_name
+  ])
+
+  name              = "/aws/lambda/${each.key}"
+  retention_in_days = 7
+
+  lifecycle {
+    create_before_destroy = true
+    ignore_changes = [name]
+  }
 }
 
 # Crear la tabla DynamoDB

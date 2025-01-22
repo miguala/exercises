@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -16,6 +17,7 @@ func handler(ctx context.Context, e events.SNSEvent) {
 
 	for _, record := range e.Records {
 		contactID := record.SNS.Message
+		log.Printf("Mensaje SNS recibido: %s", contactID) // <--- Log
 
 		input := &dynamodb.UpdateItemInput{
 			TableName: aws.String("Contacts8a"),
@@ -27,7 +29,10 @@ func handler(ctx context.Context, e events.SNSEvent) {
 			ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{":s": {S: aws.String("PROCESSED")}},
 		}
 
-		db.UpdateItem(input)
+		_, err := db.UpdateItem(input) // <--- Capturar el error
+		if err != nil {
+			log.Printf("Error actualizando DynamoDB: %v", err) // <--- Log error
+		}
 	}
 }
 
