@@ -3,6 +3,7 @@ bin/
 dist/
 *.exe
 *.out
+*.zip
 
 # Dependencias de Go
 vendor/

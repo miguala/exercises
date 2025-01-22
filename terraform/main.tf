@@ -1,7 +1,7 @@
 # Proveedor AWS
 provider "aws" {
-  region     = "us-east-1"
-  profile    = "playground"
+  region  = "us-east-1"
+  profile = "playground"
 }
 
 # Definir un rol de IAM para la función Lambda
@@ -34,7 +34,7 @@ resource "aws_iam_policy" "dynamodb_access" {
       {
         Effect   = "Allow"
         Action   = ["dynamodb:PutItem", "dynamodb:GetItem", "dynamodb:UpdateItem"] # Acciones permitidas
-        Resource = aws_dynamodb_table.contacts8a.arn # Limita el acceso a una tabla específica
+        Resource = aws_dynamodb_table.contacts8a.arn                               # Limita el acceso a una tabla específica
       }
     ]
   })
@@ -42,7 +42,7 @@ resource "aws_iam_policy" "dynamodb_access" {
 
 # Adjuntar la política de acceso a DynamoDB al rol Lambda
 resource "aws_iam_role_policy_attachment" "lambda_dynamodb" {
-  role       = aws_iam_role.lambda_role.name # Rol Lambda
+  role       = aws_iam_role.lambda_role.name      # Rol Lambda
   policy_arn = aws_iam_policy.dynamodb_access.arn # Política DynamoDB
 }
 
@@ -54,14 +54,14 @@ resource "aws_iam_role_policy_attachment" "lambda_logs" {
 
 # Crear la tabla DynamoDB
 resource "aws_dynamodb_table" "contacts8a" {
-  name         = "Contacts8a" # Nombre de la tabla
+  name         = "Contacts8a"      # Nombre de la tabla
   billing_mode = "PAY_PER_REQUEST" # Modo de facturación por solicitud
-  hash_key     = "id" # Llave primaria de la tabla
+  hash_key     = "id"              # Llave primaria de la tabla
 
   # Definir el esquema de atributos
   attribute {
     name = "id" # Nombre del atributo (llave primaria)
-    type = "S" # Tipo de dato (string)
+    type = "S"  # Tipo de dato (string)
   }
 }
 
@@ -72,27 +72,27 @@ resource "aws_api_gateway_rest_api" "api8a" {
 
 # Crear un recurso "contacts8a" en API Gateway
 resource "aws_api_gateway_resource" "contacts8a" {
-  rest_api_id = aws_api_gateway_rest_api.api8a.id # ID de la API Gateway
+  rest_api_id = aws_api_gateway_rest_api.api8a.id               # ID de la API Gateway
   parent_id   = aws_api_gateway_rest_api.api8a.root_resource_id # Raíz de la API
-  path_part   = "contacts8a" # Parte de la ruta
+  path_part   = "contacts8a"                                    # Parte de la ruta
 }
 
 # Crear un recurso para contactos individuales
 resource "aws_api_gateway_resource" "contact_id8a" {
   rest_api_id = aws_api_gateway_rest_api.api8a.id
   parent_id   = aws_api_gateway_resource.contacts8a.id # Recurso "contacts8a" como padre
-  path_part   = "{id}" # Identificador dinámico en la ruta
+  path_part   = "{id}"                                 # Identificador dinámico en la ruta
 }
 
 # Definir la función Lambda para crear contactos
 resource "aws_lambda_function" "create_contact8a" {
   filename      = "../lambdas/create-contact/create-contact.zip" # Ruta al paquete ZIP del código Lambda
-  function_name = "create-contact8a-go" # Nombre de la función
-  role          = aws_iam_role.lambda_role.arn # Rol asignado a la función
-  runtime       = "provided.al2" # Tiempo de ejecución personalizado (Go en este caso)
-  architectures = ["arm64"] # Arquitectura de la función
-  handler       = "bootstrap" # Punto de entrada del código
-  publish       = true # Publicar una nueva versión
+  function_name = "create-contact8a-go"                          # Nombre de la función
+  role          = aws_iam_role.lambda_role.arn                   # Rol asignado a la función
+  runtime       = "provided.al2"                                 # Tiempo de ejecución personalizado (Go en este caso)
+  architectures = ["arm64"]                                      # Arquitectura de la función
+  handler       = "bootstrap"                                    # Punto de entrada del código
+  publish       = true                                           # Publicar una nueva versión
 }
 
 # Definir la función Lambda para obtener contactos
@@ -109,9 +109,9 @@ resource "aws_lambda_function" "get_contact8a" {
 # Permitir que API Gateway invoque la función Lambda (POST /contacts8a)
 resource "aws_lambda_permission" "api_gateway" {
   statement_id  = "AllowExecutionFromAPIGateway" # Identificador único para la política
-  action        = "lambda:InvokeFunction" # Permitir invocar la función Lambda
+  action        = "lambda:InvokeFunction"        # Permitir invocar la función Lambda
   function_name = aws_lambda_function.create_contact8a.function_name
-  principal     = "apigateway.amazonaws.com" # API Gateway como principal
+  principal     = "apigateway.amazonaws.com"                              # API Gateway como principal
   source_arn    = "${aws_api_gateway_rest_api.api8a.execution_arn}/*/*/*" # Limitar a esta API Gateway
 
   depends_on = [aws_lambda_function.create_contact8a] # Garantizar que Lambda se cree primero

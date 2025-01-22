@@ -20,7 +20,7 @@ func handler(ctx context.Context, e events.SNSEvent) {
 		json.Unmarshal([]byte(record.SNS.Message), &contactID)
 
 		input := &dynamodb.UpdateItemInput{
-			TableName: aws.String("Contacts"),
+			TableName: aws.String("Contacts8a"),
 			Key: map[string]*dynamodb.AttributeValue{
 				"id": {S: aws.String(contactID)},
 			},
