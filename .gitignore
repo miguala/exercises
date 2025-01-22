@@ -1,0 +1,87 @@
+# Binarios y archivos compilados
+bin/
+dist/
+*.exe
+*.out
+
+# Dependencias de Go
+vendor/
+go.sum
+
+# Archivos de configuración de IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Archivos generados por Go
+*.test
+*.prof
+*.log
+
+# Archivos específicos de Go
+go.mod
+go.work
+
+# Archivos de entorno
+.env
+.env.local
+
+# Directorios de caché de Go
+/pkg/
+/tmp/
+
+# Archivos de cobertura
+coverage.txt
+*.coverprofile
+
+# Archivos generados por herramientas de Go
+debug
+
+
+##########################################################################################
+
+# Archivos de estado de Terraform
+*.tfstate
+*.tfstate.*
+
+# Archivos de bloqueo de Terraform
+.terraform.lock.hcl
+
+# Directorio de caché de Terraform
+.terraform/
+
+# Archivos de plan de Terraform
+*.tfplan
+
+# Archivos de entorno
+.env
+.env.local
+
+# Archivos de configuración local
+terraform.tfvars
+*.auto.tfvars
+
+# Archivos de logs
+*.log
+
+# Archivos de IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Archivos de backup
+*.backup
+
+# Archivos de override
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Archivos de módulos descargados
+.terraform/modules/
+
+# Excluir archivos .DS_Store de macOS
+.DS_Store
