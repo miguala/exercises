@@ -12,6 +12,8 @@ import (
 )
 
 func handler(ctx context.Context, e events.SNSEvent) {
+	log.Printf("INICIO CONTACT SNS TRIGGER LAMBDA 8A") // <--- Log
+
 	sess := session.Must(session.NewSession())
 	db := dynamodb.New(sess)
 

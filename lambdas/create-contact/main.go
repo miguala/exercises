@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"os"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -21,6 +22,8 @@ type Contact struct {
 }
 
 func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	log.Printf("INICIO CONTACT CREATE LAMBDA 8A") // <--- Log
+
 	sess := session.Must(session.NewSession())
 	db := dynamodb.New(sess)
 

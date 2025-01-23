@@ -13,6 +13,8 @@ import (
 )
 
 func handler(ctx context.Context, e events.DynamoDBEvent) {
+	log.Printf("INICIO CONTACT DYNAMODB TRIGGER LAMBDA 8A") // <--- Log
+
 	sess := session.Must(session.NewSession())
 	svc := sns.New(sess)
 	topicArn := os.Getenv("SNS_TOPIC_ARN")
