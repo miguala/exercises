@@ -4,7 +4,7 @@ provider "aws" {
 
 # IAM Role for Lambda
 resource "aws_iam_role" "lambda_role" {
-  name = "lambda-role"
+  name = "${var.country}-${var.product}-${var.environment}-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -18,7 +18,7 @@ resource "aws_iam_role" "lambda_role" {
 
 # IAM Policy for DynamoDB Access
 resource "aws_iam_policy" "dynamodb_access" {
-  name = "dynamodb-access-policy"
+  name = "${var.country}-${var.product}-${var.environment}-dynamodb"
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -69,7 +69,7 @@ resource "aws_cloudwatch_log_group" "lambda_logs" {
 
 # DynamoDB Table
 resource "aws_dynamodb_table" "contacts" {
-  name         = "Contacts"
+  name         = "${var.country}-${var.product}-${var.environment}-contacts"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "id"
 
@@ -84,7 +84,7 @@ resource "aws_dynamodb_table" "contacts" {
 
 # SNS Topic
 resource "aws_sns_topic" "contacts_topic" {
-  name = "ContactsTopic"
+  name = "${var.country}-${var.product}-${var.environment}-contacts"
 }
 
 # API Gateway
@@ -107,7 +107,7 @@ resource "aws_api_gateway_resource" "contact_id" {
 # Lambda Functions
 resource "aws_lambda_function" "create_contact" {
   filename      = "../bin/create-contact.zip"
-  function_name = "create-contact"
+  function_name =  "${var.country}-${var.product}-${var.environment}-create-contact"
   role          = aws_iam_role.lambda_role.arn
   runtime       = "provided.al2"
   architectures = ["arm64"]
@@ -123,7 +123,7 @@ resource "aws_lambda_function" "create_contact" {
 
 resource "aws_lambda_function" "get_contact" {
   filename      = "../bin/get-contact.zip"
-  function_name = "get-contact"
+  function_name = "${var.country}-${var.product}-${var.environment}-get-contact"
   role          = aws_iam_role.lambda_role.arn
   runtime       = "provided.al2"
   architectures = ["arm64"]
@@ -139,7 +139,7 @@ resource "aws_lambda_function" "get_contact" {
 
 resource "aws_lambda_function" "dynamodb_trigger" {
   filename      = "../bin/dynamodb-trigger.zip"
-  function_name = "dynamodb-trigger"
+  function_name = "${var.country}-${var.product}-${var.environment}-dynamodb-trigger"
   role          = aws_iam_role.lambda_role.arn
   runtime       = "provided.al2"
   architectures = ["arm64"]
@@ -155,7 +155,7 @@ resource "aws_lambda_function" "dynamodb_trigger" {
 
 resource "aws_lambda_function" "sns_trigger" {
   filename      = "../bin/sns-trigger.zip"
-  function_name = "sns-trigger"
+  function_name = "${var.country}-${var.product}-${var.environment}-sns-trigger"
   role          = aws_iam_role.lambda_role.arn
   runtime       = "provided.al2"
   architectures = ["arm64"]
