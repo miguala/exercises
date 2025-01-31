@@ -17,12 +17,11 @@ func handler(ctx context.Context, e events.SNSEvent) {
 
 	sess := session.Must(session.NewSession())
 	db := dynamodb.New(sess)
+	tableName := os.Getenv("TABLE_NAME")
 
 	for _, record := range e.Records {
 		contactID := record.SNS.Message
 		log.Printf("Mensaje SNS recibido: %s", contactID) // <--- Log
-
-		tableName := os.Getenv("TABLE_NAME")
 
 		input := &dynamodb.UpdateItemInput{
 			TableName: aws.String(tableName),
