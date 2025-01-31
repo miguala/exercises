@@ -122,7 +122,7 @@ resource "aws_lambda_function" "create_contact" {
 }
 
 resource "aws_lambda_function" "get_contact" {
-  filename      = "../bint-contact.zip"
+  filename      = "../bin/get-contact.zip"
   function_name = "get-contact"
   role          = aws_iam_role.lambda_role.arn
   runtime       = "provided.al2"
@@ -138,7 +138,7 @@ resource "aws_lambda_function" "get_contact" {
 }
 
 resource "aws_lambda_function" "dynamodb_trigger" {
-  filename      = "../biner/dynamodb-trigger.zip"
+  filename      = "../bin/dynamodb-trigger.zip"
   function_name = "dynamodb-trigger"
   role          = aws_iam_role.lambda_role.arn
   runtime       = "provided.al2"
@@ -154,7 +154,7 @@ resource "aws_lambda_function" "dynamodb_trigger" {
 }
 
 resource "aws_lambda_function" "sns_trigger" {
-  filename      = "../bins-trigger.zip"
+  filename      = "../bin/sns-trigger.zip"
   function_name = "sns-trigger"
   role          = aws_iam_role.lambda_role.arn
   runtime       = "provided.al2"
