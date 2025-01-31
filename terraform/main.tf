@@ -259,7 +259,7 @@ resource "aws_api_gateway_deployment" "deployment" {
   ]
 }
 
-resource "aws_api_gateway_stage" "dev" {
+resource "aws_api_gateway_stage" "stage" {
   stage_name    = var.environment
   rest_api_id   = aws_api_gateway_rest_api.api.id
   deployment_id = aws_api_gateway_deployment.deployment.id
@@ -267,7 +267,7 @@ resource "aws_api_gateway_stage" "dev" {
 
 # Outputs
 output "api_gateway_url" {
-  value = "${aws_api_gateway_deployment.deployment.invoke_url}/${aws_api_gateway_stage.dev.stage_name}"
+  value = "${aws_api_gateway_deployment.deployment.invoke_url}/${aws_api_gateway_stage.stage.stage_name}"
 }
 
 output "lambda_function_names" {
