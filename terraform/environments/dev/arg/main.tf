@@ -196,9 +196,32 @@ resource "aws_apigatewayv2_deployment" "api_deployment" {
   ]
 }
 
+
+resource "aws_cloudwatch_log_group" "api_gw_access_logs" {
+  name              = "/aws/apigateway/${module.main_api.api_name}-access"
+  retention_in_days = 7
+}
+
 # Stage para el entorno (requerido para la URL)
 resource "aws_apigatewayv2_stage" "default_stage" {
   api_id      = module.main_api.api_id
   name        = "dev"
   auto_deploy = true
+
+  access_log_settings {
+    destination_arn = aws_cloudwatch_log_group.api_gw_access_logs.arn
+    format = jsonencode({
+      requestId      = "$context.requestId"
+      ip             = "$context.identity.sourceIp"
+      requestTime    = "$context.requestTime"
+      httpMethod     = "$context.httpMethod"
+      routeKey       = "$context.routeKey"
+      status         = "$context.status"
+      responseLength = "$context.responseLength"
+      errorMessage   = "$context.integrationErrorMessage"
+    })
+  }
+
+  # Asegúrate de que el grupo de logs se cree primero
+  depends_on = [aws_cloudwatch_log_group.api_gw_access_logs]
 }

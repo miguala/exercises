@@ -1,5 +1,14 @@
 # arg-prepaid-dev
 
+# Variables
+resource "aws_cloudwatch_log_group" "lambda" {
+  name              = "/aws/lambda/${var.country}-${var.product}-${var.environment}-${var.function_name}"
+  retention_in_days = 7  # Ajustar según necesidad (1, 3, 7, 30, etc)
+  lifecycle {
+    prevent_destroy = false
+  }
+}
+
 # Función Lambda
 resource "aws_lambda_function" "this" {
   filename      = var.filename
@@ -12,6 +21,8 @@ resource "aws_lambda_function" "this" {
   environment {
     variables = var.environment_variables
   }
+
+  depends_on = [aws_cloudwatch_log_group.lambda]
 }
 
 # Rol IAM para Lambda
@@ -40,6 +51,7 @@ resource "aws_iam_role_policy" "logs_policy" {
         "logs:CreateLogStream",
         "logs:PutLogEvents"
       ],
+      Effect   = "Allow"
       Resource = "*"
     }]
   })
