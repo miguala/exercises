@@ -17,6 +17,9 @@ variable "filename" {
 variable "memory_size" {
   type = number
 }
+variable "timeout" {
+  type = number
+}
 variable "enable_dynamodb_access" {
   type    = bool
   default = false

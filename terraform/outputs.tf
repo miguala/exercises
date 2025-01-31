@@ -1,4 +1,3 @@
-# environments/dev/ar/outputs.tf (nuevo archivo)
 output "api_base_url" {
   value = module.main_api.api_endpoint
 }

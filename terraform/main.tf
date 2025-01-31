@@ -10,10 +10,10 @@ module "contacts_table" {
   country          = var.country
   product          = var.product
   environment      = var.environment
-  billing_mode     = "PAY_PER_REQUEST"
-  hash_key         = "id"
+  billing_mode     = var.billing_mode
+  hash_key         = var.hash_key
   stream_enabled   = true
-  stream_view_type = "NEW_IMAGE"
+  stream_view_type = var.stream_view_type
 }
 
 # API Gateway
@@ -35,13 +35,13 @@ module "sns_topic" {
 }
 
 # Cognito
-# module "cognito" {
-#   source          = "../../../modules/cognito"
-#   user_pool_name  = "contacts-pool-dev"
-#   client_name     = "contacts-client-dev"
-#   api_gateway_id  = module.main_api.api_id
-#   region          = "us-east-1"
-# }
+module "cognito" {
+  source          = "../../../modules/cognito"
+  user_pool_name  = "${var.country}-${var.product}-${var.environment}-user-pool"
+  client_name     = "${var.country}-${var.product}-${var.environment}-client"
+  api_gateway_id  = module.main_api.api_id
+  region          = "us-east-1"
+}
 
 # Lambda Functions
 module "create_contact_lambda" {
@@ -51,7 +51,7 @@ module "create_contact_lambda" {
   product                = var.product
   environment            = var.environment
   filename               = "../../../../bin/create-contact.zip"
-  memory_size            = 256
+  memory_size            = var.lambda_memory_size
   enable_dynamodb_access = true
   dynamodb_actions       = ["dynamodb:PutItem"]
   dynamodb_table_arn     = module.contacts_table.table_arn
@@ -60,7 +60,6 @@ module "create_contact_lambda" {
   }
 }
 
-# In environments/dev/ar/main.tf, update the dynamodb_trigger_lambda module:
 module "dynamodb_trigger_lambda" {
   source                 = "../../../modules/lambda"
   function_name          = "dynamodb-trigger"
@@ -68,7 +67,7 @@ module "dynamodb_trigger_lambda" {
   product                = var.product
   environment            = var.environment
   filename               = "../../../../bin/dynamodb-trigger.zip"
-  memory_size            = 256
+  memory_size            = var.lambda_memory_size
   enable_dynamodb_access = true
   dynamodb_actions = [
     "dynamodb:GetRecords",
@@ -93,7 +92,8 @@ module "get_contact_lambda" {
   product                = var.product
   environment            = var.environment
   filename               = "../../../../bin/get-contact.zip"
-  memory_size            = 256
+  memory_size            = var.lambda_memory_size
+  timeout               = var.lambda_timeout 
   enable_dynamodb_access = true
   dynamodb_actions       = ["dynamodb:GetItem"]
   dynamodb_table_arn     = module.contacts_table.table_arn
@@ -109,7 +109,7 @@ module "sns_trigger_lambda" {
   product                = var.product
   environment            = var.environment
   filename               = "../../../../bin/sns-trigger.zip"
-  memory_size            = 256
+  memory_size            = var.lambda_memory_size
   enable_dynamodb_access = true
   dynamodb_actions       = ["dynamodb:UpdateItem"]
   dynamodb_table_arn     = module.contacts_table.table_arn
@@ -199,7 +199,7 @@ resource "aws_apigatewayv2_deployment" "api_deployment" {
 
 resource "aws_cloudwatch_log_group" "api_gw_access_logs" {
   name              = "/aws/apigateway/${module.main_api.api_name}-access"
-  retention_in_days = 7
+  retention_in_days = var.log_retention_days
 }
 
 # Stage para el entorno (requerido para la URL)

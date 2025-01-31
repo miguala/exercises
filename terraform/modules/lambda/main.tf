@@ -3,7 +3,7 @@
 # Variables
 resource "aws_cloudwatch_log_group" "lambda" {
   name              = "/aws/lambda/${var.country}-${var.product}-${var.environment}-${var.function_name}"
-  retention_in_days = 7  # Ajustar según necesidad (1, 3, 7, 30, etc)
+  retention_in_days = 7 # Ajustar según necesidad (1, 3, 7, 30, etc)
   lifecycle {
     prevent_destroy = false
   }
@@ -17,6 +17,7 @@ resource "aws_lambda_function" "this" {
   runtime       = "provided.al2"
   handler       = "bootstrap"
   memory_size   = var.memory_size
+  timeout       = var.timeout
   architectures = ["arm64"]
   environment {
     variables = var.environment_variables
