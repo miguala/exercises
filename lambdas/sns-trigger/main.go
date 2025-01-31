@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"os"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -21,8 +22,10 @@ func handler(ctx context.Context, e events.SNSEvent) {
 		contactID := record.SNS.Message
 		log.Printf("Mensaje SNS recibido: %s", contactID) // <--- Log
 
+		tableName := os.Getenv("TABLE_NAME")
+
 		input := &dynamodb.UpdateItemInput{
-			TableName: aws.String("Contacts8a"),
+			TableName: aws.String(tableName),
 			Key: map[string]*dynamodb.AttributeValue{
 				"id": {S: aws.String(contactID)},
 			},

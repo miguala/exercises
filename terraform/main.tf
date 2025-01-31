@@ -55,17 +55,17 @@ resource "aws_iam_role_policy_attachment" "lambda_dynamodb" {
 }
 
 # CloudWatch Log Groups for Lambda Functions
-resource "aws_cloudwatch_log_group" "lambda_logs" {
-  for_each = toset([
-    aws_lambda_function.create_contact.function_name,
-    aws_lambda_function.get_contact.function_name,
-    aws_lambda_function.dynamodb_trigger.function_name,
-    aws_lambda_function.sns_trigger.function_name
-  ])
+# resource "aws_cloudwatch_log_group" "lambda_logs" {
+#   for_each = toset([
+#     aws_lambda_function.create_contact.function_name,
+#     aws_lambda_function.get_contact.function_name,
+#     aws_lambda_function.dynamodb_trigger.function_name,
+#     aws_lambda_function.sns_trigger.function_name
+#   ])
 
-  name              = "/aws/lambda/${each.key}"
-  retention_in_days = 7
-}
+#   name              = "/aws/lambda/${each.key}"
+#   retention_in_days = 7
+# }
 
 # DynamoDB Table
 resource "aws_dynamodb_table" "contacts" {
