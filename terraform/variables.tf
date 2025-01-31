@@ -11,6 +11,7 @@ variable "country" {
 variable "product" {
   description = "Product name (onboarding, payments, etc)"
   type        = string
+  default     = "onboarding"
 }
 
 variable "environment" {
