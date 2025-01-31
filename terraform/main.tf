@@ -55,17 +55,17 @@ resource "aws_iam_role_policy_attachment" "lambda_dynamodb" {
 }
 
 # CloudWatch Log Groups for Lambda Functions
-# resource "aws_cloudwatch_log_group" "lambda_logs" {
-#   for_each = toset([
-#     aws_lambda_function.create_contact.function_name,
-#     aws_lambda_function.get_contact.function_name,
-#     aws_lambda_function.dynamodb_trigger.function_name,
-#     aws_lambda_function.sns_trigger.function_name
-#   ])
+resource "aws_cloudwatch_log_group" "lambda_logs" {
+  for_each = toset([
+    aws_lambda_function.create_contact.function_name,
+    aws_lambda_function.get_contact.function_name,
+    aws_lambda_function.dynamodb_trigger.function_name,
+    aws_lambda_function.sns_trigger.function_name
+  ])
 
-#   name              = "/aws/lambda/${each.key}"
-#   retention_in_days = 7
-# }
+  name              = "/aws/lambda/${each.key}"
+  retention_in_days = 7
+}
 
 # DynamoDB Table
 resource "aws_dynamodb_table" "contacts" {
@@ -107,7 +107,7 @@ resource "aws_api_gateway_resource" "contact_id" {
 # Lambda Functions
 resource "aws_lambda_function" "create_contact" {
   filename      = "../bin/create-contact.zip"
-  function_name =  "${var.country}-${var.product}-${var.environment}-create-contact"
+  function_name = "${var.country}-${var.product}-${var.environment}-create-contact"
   role          = aws_iam_role.lambda_role.arn
   runtime       = "provided.al2"
   architectures = ["arm64"]
@@ -161,6 +161,12 @@ resource "aws_lambda_function" "sns_trigger" {
   architectures = ["arm64"]
   handler       = "bootstrap"
   publish       = true
+
+  environment {
+    variables = {
+      TABLE_NAME = aws_dynamodb_table.contacts.name
+    }
+  }
 }
 
 # Lambda Permissions
