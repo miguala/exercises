@@ -1,6 +1,22 @@
-# Proveedor AWS
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
+}
+
 provider "aws" {
   region = var.region
+}
+
+locals {
+  common_tags = {
+    Product     = var.product
+    Environment = var.environment
+    Terraform   = "true"
+  }
 }
 
 # Tabla DynamoDB
@@ -14,6 +30,7 @@ module "contacts_table" {
   hash_key         = var.hash_key
   stream_enabled   = true
   stream_view_type = var.stream_view_type
+  tags             = local.common_tags
 }
 
 # API Gateway
@@ -23,6 +40,7 @@ module "main_api" {
   country     = var.country
   product     = var.product
   environment = var.environment
+  tags        = local.common_tags
 }
 
 # SNS
@@ -32,16 +50,17 @@ module "sns_topic" {
   country     = var.country
   product     = var.product
   environment = var.environment
+  tags        = local.common_tags
 }
 
 # Cognito
-# module "cognito" {
-#   source         = "./modules/cognito"
-#   user_pool_name = "${var.country}-${var.product}-${var.environment}-user-pool"
-#   client_name    = "${var.country}-${var.product}-${var.environment}-client"
-#   api_gateway_id = module.main_api.api_id
-#   region         = "us-east-1"
-# }
+module "cognito" {
+  source         = "./modules/cognito"
+  user_pool_name = "${var.country}-${var.product}-${var.environment}-user-pool"
+  client_name    = "${var.country}-${var.product}-${var.environment}-client"
+  api_gateway_id = module.main_api.api_id
+  region         = var.region
+}
 
 # Lambda Functions
 module "create_contact_lambda" {
@@ -59,6 +78,7 @@ module "create_contact_lambda" {
   environment_variables = {
     TABLE_NAME = module.contacts_table.table_name
   }
+  tags = local.common_tags
 }
 
 module "dynamodb_trigger_lambda" {
@@ -85,6 +105,7 @@ module "dynamodb_trigger_lambda" {
     TABLE_NAME    = module.contacts_table.table_name
     SNS_TOPIC_ARN = module.sns_topic.topic_arn
   }
+  tags = local.common_tags
 }
 
 module "get_contact_lambda" {
@@ -102,6 +123,7 @@ module "get_contact_lambda" {
   environment_variables = {
     TABLE_NAME = module.contacts_table.table_name
   }
+  tags = local.common_tags
 }
 
 module "sns_trigger_lambda" {
@@ -119,6 +141,7 @@ module "sns_trigger_lambda" {
   environment_variables = {
     TABLE_NAME = module.contacts_table.table_name
   }
+  tags = local.common_tags
 }
 
 # API Gateway Integrations and Routes for /contacts
@@ -203,6 +226,7 @@ resource "aws_apigatewayv2_deployment" "api_deployment" {
 resource "aws_cloudwatch_log_group" "api_gw_access_logs" {
   name              = "/aws/apigateway/${module.main_api.api_name}-access"
   retention_in_days = var.log_retention_days
+  tags              = local.common_tags
 }
 
 # Stage para el entorno (requerido para la URL)
@@ -225,6 +249,7 @@ resource "aws_apigatewayv2_stage" "default_stage" {
     })
   }
 
+  tags = local.common_tags
   # Asegúrate de que el grupo de logs se cree primero
   depends_on = [aws_cloudwatch_log_group.api_gw_access_logs]
 }

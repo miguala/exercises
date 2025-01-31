@@ -11,6 +11,8 @@ resource "aws_dynamodb_table" "this" {
     name = var.hash_key
     type = "S"
   }
+
+  tags = var.tags
 }
 
 # Outputs

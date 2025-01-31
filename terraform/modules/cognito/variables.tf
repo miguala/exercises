@@ -1,8 +1,12 @@
-variable "country" {
+variable "region" {
   type = string
 }
 
-variable "product" {
+variable "user_pool_name" {
+  type = string
+}
+
+variable "client_name" {
   type = string
 }
 
@@ -10,7 +14,7 @@ variable "environment" {
   type = string
 }
 
-variable "api_name" {
+variable "api_gateway_id" {
   type = string
 }
 

@@ -36,3 +36,6 @@ variable "stream_view_type" {
   default     = "NEW_IMAGE"
 }
 
+variable "tags" {
+  type = map(string)
+}

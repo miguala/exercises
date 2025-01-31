@@ -1,5 +1,6 @@
 resource "aws_cognito_user_pool" "pool" {
   name = var.user_pool_name
+  tags = var.tags
 }
 
 resource "aws_cognito_user_pool_client" "client" {

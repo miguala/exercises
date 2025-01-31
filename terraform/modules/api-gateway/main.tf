@@ -1,6 +1,7 @@
 resource "aws_apigatewayv2_api" "http_api" {
   name          = "${var.country}-${var.product}-${var.environment}-${var.api_name}"
   protocol_type = "HTTP"
+  tags          = var.tags
 }
 
 output "api_id" {
