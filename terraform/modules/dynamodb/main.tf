@@ -14,7 +14,6 @@ resource "aws_dynamodb_table" "this" {
 }
 
 # Outputs
-
 output "table_name" {
   value = aws_dynamodb_table.this.name
 }

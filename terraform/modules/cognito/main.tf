@@ -1,6 +1,3 @@
-
-
-
 resource "aws_cognito_user_pool" "pool" {
   name = var.user_pool_name
 }
@@ -26,3 +23,4 @@ resource "aws_apigatewayv2_authorizer" "jwt" {
 output "authorizer_id" {
   value = aws_apigatewayv2_authorizer.jwt.id
 }
+

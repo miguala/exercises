@@ -5,7 +5,7 @@ provider "aws" {
 
 # Tabla DynamoDB
 module "contacts_table" {
-  source           = "../../../modules/dynamodb"
+  source           = "./modules/dynamodb"
   table_name       = "contacts"
   country          = var.country
   product          = var.product
@@ -18,7 +18,7 @@ module "contacts_table" {
 
 # API Gateway
 module "main_api" {
-  source      = "../../../modules/api-gateway"
+  source      = "./modules/api-gateway"
   api_name    = "contacts"
   country     = var.country
   product     = var.product
@@ -27,7 +27,7 @@ module "main_api" {
 
 # SNS
 module "sns_topic" {
-  source      = "../../../modules/sns"
+  source      = "./modules/sns"
   topic_name  = "contacts"
   country     = var.country
   product     = var.product
@@ -35,23 +35,24 @@ module "sns_topic" {
 }
 
 # Cognito
-module "cognito" {
-  source          = "../../../modules/cognito"
-  user_pool_name  = "${var.country}-${var.product}-${var.environment}-user-pool"
-  client_name     = "${var.country}-${var.product}-${var.environment}-client"
-  api_gateway_id  = module.main_api.api_id
-  region          = "us-east-1"
-}
+# module "cognito" {
+#   source         = "./modules/cognito"
+#   user_pool_name = "${var.country}-${var.product}-${var.environment}-user-pool"
+#   client_name    = "${var.country}-${var.product}-${var.environment}-client"
+#   api_gateway_id = module.main_api.api_id
+#   region         = "us-east-1"
+# }
 
 # Lambda Functions
 module "create_contact_lambda" {
-  source                 = "../../../modules/lambda"
+  source                 = "./modules/lambda"
   function_name          = "create-contact"
   country                = var.country
   product                = var.product
   environment            = var.environment
-  filename               = "../../../../bin/create-contact.zip"
+  filename               = "./../bin/create-contact.zip"
   memory_size            = var.lambda_memory_size
+  timeout                = var.lambda_timeout
   enable_dynamodb_access = true
   dynamodb_actions       = ["dynamodb:PutItem"]
   dynamodb_table_arn     = module.contacts_table.table_arn
@@ -61,13 +62,14 @@ module "create_contact_lambda" {
 }
 
 module "dynamodb_trigger_lambda" {
-  source                 = "../../../modules/lambda"
+  source                 = "./modules/lambda"
   function_name          = "dynamodb-trigger"
   country                = var.country
   product                = var.product
   environment            = var.environment
-  filename               = "../../../../bin/dynamodb-trigger.zip"
+  filename               = "./../bin/dynamodb-trigger.zip"
   memory_size            = var.lambda_memory_size
+  timeout                = var.lambda_timeout
   enable_dynamodb_access = true
   dynamodb_actions = [
     "dynamodb:GetRecords",
@@ -86,14 +88,14 @@ module "dynamodb_trigger_lambda" {
 }
 
 module "get_contact_lambda" {
-  source                 = "../../../modules/lambda"
+  source                 = "./modules/lambda"
   function_name          = "get-contact"
   country                = var.country
   product                = var.product
   environment            = var.environment
-  filename               = "../../../../bin/get-contact.zip"
+  filename               = "./../bin/get-contact.zip"
   memory_size            = var.lambda_memory_size
-  timeout               = var.lambda_timeout 
+  timeout                = var.lambda_timeout
   enable_dynamodb_access = true
   dynamodb_actions       = ["dynamodb:GetItem"]
   dynamodb_table_arn     = module.contacts_table.table_arn
@@ -103,13 +105,14 @@ module "get_contact_lambda" {
 }
 
 module "sns_trigger_lambda" {
-  source                 = "../../../modules/lambda"
+  source                 = "./modules/lambda"
   function_name          = "sns-trigger"
   country                = var.country
   product                = var.product
   environment            = var.environment
-  filename               = "../../../../bin/sns-trigger.zip"
+  filename               = "./../bin/sns-trigger.zip"
   memory_size            = var.lambda_memory_size
+  timeout                = var.lambda_timeout
   enable_dynamodb_access = true
   dynamodb_actions       = ["dynamodb:UpdateItem"]
   dynamodb_table_arn     = module.contacts_table.table_arn
