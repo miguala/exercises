@@ -89,7 +89,7 @@ resource "aws_sns_topic" "contacts_topic" {
 
 # API Gateway
 resource "aws_api_gateway_rest_api" "api" {
-  name = "ContactsAPI"
+  name = "${var.country}-${var.product}-${var.environment}-contacts"
 }
 
 resource "aws_api_gateway_resource" "contacts" {
