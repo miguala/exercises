@@ -54,20 +54,3 @@ output "sns_topic_arn" {
   description = "ARN del tema SNS"
   value       = module.sns_topic.topic_arn
 }
-
-# Outputs del módulo Cognito
-output "cognito_user_pool_id" {
-  description = "ID del User Pool de Cognito"
-  value       = module.cognito.user_pool_id
-}
-
-output "cognito_user_pool_client_id" {
-  description = "ID del Client del User Pool de Cognito"
-  value       = module.cognito.client_id
-}
-
-# Outputs de las URLs del API Gateway
-output "api_base_url" {
-  description = "URL base del API Gateway"
-  value       = module.main_api.api_endpoint
-}

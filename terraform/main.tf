@@ -60,6 +60,8 @@ module "cognito" {
   client_name    = "${var.country}-${var.product}-${var.environment}-client"
   api_gateway_id = module.main_api.api_id
   region         = var.region
+  tags        = local.common_tags
+  environment    = var.environment
 }
 
 # Lambda Functions
