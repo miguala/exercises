@@ -234,7 +234,7 @@ resource "aws_cloudwatch_log_group" "api_gw_access_logs" {
 # Stage para el entorno (requerido para la URL)
 resource "aws_apigatewayv2_stage" "default_stage" {
   api_id      = module.main_api.api_id
-  name        = "dev"
+  name        = var.environment
   auto_deploy = true
 
   access_log_settings {
