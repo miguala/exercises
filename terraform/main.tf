@@ -43,19 +43,10 @@ module "sns_topic" {
   tags        = local.common_tags
 }
 
-# Módulo Cognito
-module "cognito" {
-  source         = "./modules/cognito"
-  user_pool_name = "${var.country}-${var.product}-${var.environment}-user-pool"
-  client_name    = "${var.country}-${var.product}-${var.environment}-client"
-  api_gateway_id = module.main_api.api_id
-  region         = var.region
-  tags           = local.common_tags
-  environment    = var.environment
-}
+
 
 # Módulo Lambda (Create Contact)
-module "create_contact_lambda" {
+module "lambda_create" {
   source                 = "./modules/lambda"
   function_name          = "create-contact"
   country                = var.country
@@ -73,19 +64,65 @@ module "create_contact_lambda" {
   tags = local.common_tags
 }
 
-# Módulo de API Gateway (Migrado)
-module "main_api" {
-  source                     = "./modules/api-gateway"
-  api_name                   = "contacts"
-  country                    = var.country
-  product                    = var.product
-  environment                = var.environment
-  create_contact_lambda_arn  = module.create_contact_lambda.function_arn
-  create_contact_lambda_name = module.create_contact_lambda.function_name
-  get_contact_lambda_arn     = module.get_contact_lambda.function_arn
-  get_contact_lambda_name    = module.get_contact_lambda.function_name
-  log_retention_days         = var.log_retention_days
-  tags                       = local.common_tags
+# Módulo Lambda (Get Contact)
+module "lambda_get" {
+  source                 = "./modules/lambda"
+  function_name          = "get-contact"
+  country                = var.country
+  product                = var.product
+  environment            = var.environment
+  filename               = "./../bin/get-contact.zip"
+  memory_size            = var.lambda_memory_size
+  timeout                = var.lambda_timeout
+  enable_dynamodb_access = true
+  dynamodb_actions       = ["dynamodb:GetItem"]
+  dynamodb_table_arn     = module.contacts_table.table_arn
+  environment_variables = {
+    TABLE_NAME = module.contacts_table.table_name
+  }
+  tags = local.common_tags
+}
+
+# Módulo Cognito
+module "cognito" {
+  source         = "./modules/cognito"
+  user_pool_name = "${var.country}-${var.product}-${var.environment}-user-pool"
+  client_name    = "${var.country}-${var.product}-${var.environment}-client"
+  api_gateway_id = module.api_gateway.api_id
+  region         = var.region
+  tags           = local.common_tags
+  environment    = var.environment
+}
+
+# Módulo API Gateway
+module "api_gateway" {
+  source             = "./modules/api-gateway"
+  country            = var.country
+  product            = var.product
+  environment        = var.environment
+  api_name           = "api"
+  cors_enabled       = true
+  log_retention_days = var.log_retention_days
+
+  # Definición dinámica de rutas
+  routes = {
+    "create_contact" = {
+      method      = "POST"
+      path        = "/contacts"
+      lambda_arn  = module.lambda_create.function_arn
+      lambda_name = module.lambda_create.function_name
+    }
+    "get_contact" = {
+      method        = "GET"
+      path          = "/contacts/{id}"
+      lambda_arn    = module.lambda_get.function_arn
+      lambda_name   = module.lambda_get.function_name
+      authorization = "JWT"
+      authorizer_id = module.cognito.authorizer_id
+    }
+  }
+
+  tags = local.common_tags
 }
 
 # Módulo Lambda (DynamoDB Trigger)
@@ -115,24 +152,6 @@ module "dynamodb_trigger_lambda" {
   tags = local.common_tags
 }
 
-# Módulo Lambda (Get Contact)
-module "get_contact_lambda" {
-  source                 = "./modules/lambda"
-  function_name          = "get-contact"
-  country                = var.country
-  product                = var.product
-  environment            = var.environment
-  filename               = "./../bin/get-contact.zip"
-  memory_size            = var.lambda_memory_size
-  timeout                = var.lambda_timeout
-  enable_dynamodb_access = true
-  dynamodb_actions       = ["dynamodb:GetItem"]
-  dynamodb_table_arn     = module.contacts_table.table_arn
-  environment_variables = {
-    TABLE_NAME = module.contacts_table.table_name
-  }
-  tags = local.common_tags
-}
 
 # Módulo Lambda (SNS Trigger)
 module "sns_trigger_lambda" {
