@@ -1,39 +1,39 @@
 variable "api_name" {
-  type        = string
+  type = string
 }
 
 variable "country" {
-  type        = string
+  type = string
 }
 
 variable "product" {
-  type        = string
+  type = string
 }
 
 variable "environment" {
-  type        = string
+  type = string
 }
 
 variable "create_contact_lambda_arn" {
-  type        = string
+  type = string
 }
 
 variable "create_contact_lambda_name" {
-  type        = string
+  type = string
 }
 
 variable "get_contact_lambda_arn" {
-  type        = string
+  type = string
 }
 
 variable "get_contact_lambda_name" {
-  type        = string
+  type = string
 }
 
 variable "log_retention_days" {
-  type        = number
+  type = number
 }
 
 variable "tags" {
-  type        = map(string)
+  type = map(string)
 }

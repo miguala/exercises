@@ -66,15 +66,15 @@ resource "aws_apigatewayv2_stage" "default_stage" {
 
   access_log_settings {
     destination_arn = aws_cloudwatch_log_group.api_gw_access_logs.arn
-    format          = jsonencode({
-      requestId          = "$context.requestId",
-      ip                 = "$context.identity.sourceIp",
-      requestTime        = "$context.requestTime",
-      httpMethod         = "$context.httpMethod",
-      routeKey           = "$context.routeKey",
-      status             = "$context.status",
-      responseLength     = "$context.responseLength",
-      errorMessage       = "$context.integrationErrorMessage"
+    format = jsonencode({
+      requestId      = "$context.requestId",
+      ip             = "$context.identity.sourceIp",
+      requestTime    = "$context.requestTime",
+      httpMethod     = "$context.httpMethod",
+      routeKey       = "$context.routeKey",
+      status         = "$context.status",
+      responseLength = "$context.responseLength",
+      errorMessage   = "$context.integrationErrorMessage"
     })
   }
 
@@ -85,17 +85,17 @@ resource "aws_apigatewayv2_stage" "default_stage" {
 
 
 output "api_id" {
-  value       = aws_apigatewayv2_api.this.id
+  value = aws_apigatewayv2_api.this.id
 }
 
 output "api_endpoint" {
-  value       = aws_apigatewayv2_api.this.api_endpoint
+  value = aws_apigatewayv2_api.this.api_endpoint
 }
 
 output "api_execution_arn" {
-  value       = aws_apigatewayv2_api.this.execution_arn
+  value = aws_apigatewayv2_api.this.execution_arn
 }
 
 output "api_name" {
-  value       = aws_apigatewayv2_api.this.name
+  value = aws_apigatewayv2_api.this.name
 }

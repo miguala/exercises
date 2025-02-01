@@ -56,7 +56,7 @@ resource "aws_iam_role_policy" "logs_policy" {
         "logs:CreateLogStream",
         "logs:PutLogEvents"
       ],
-      Effect   = "Allow"
+      Effect = "Allow"
       Resource = [
         aws_cloudwatch_log_group.lambda.arn,
         "${aws_cloudwatch_log_group.lambda.arn}:*"
