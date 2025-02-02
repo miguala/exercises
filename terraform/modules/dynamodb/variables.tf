@@ -3,12 +3,12 @@ variable "table_name" {
 }
 
 variable "billing_mode" {
-  type = string
+  type    = string
   default = "PAY_PER_REQUEST"
 }
 
 variable "hash_key" {
-    type = string
+  type = string
 }
 
 variable "stream_enabled" {
@@ -22,24 +22,24 @@ variable "stream_view_type" {
 }
 
 variable "tags" {
-  type = map(string)
+  type    = map(string)
   default = {}
 }
 
 variable "lambda_event_sources" {
-    type = map(object({
-        function_name = string
-        starting_position = optional(string)
-        enabled = optional(bool)
-        batch_size = optional(number)
-    }))
-    default = {}
-    description = "Map of lambda functions that will be subscribed to the dynamoDB stream."
+  type = map(object({
+    function_name     = string
+    starting_position = optional(string)
+    enabled           = optional(bool)
+    batch_size        = optional(number)
+  }))
+  default     = {}
+  description = "Map of lambda functions that will be subscribed to the dynamoDB stream."
 }
 variable "replica_region" {
   type        = string
   description = "The region where the DynamoDB table replica will be created."
-  default = ""
+  default     = ""
 }
 
 variable "kms_key_arn" {

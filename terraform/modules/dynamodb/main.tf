@@ -16,7 +16,7 @@ resource "aws_dynamodb_table" "this" {
 
   dynamic "replica" {
     for_each = var.replica_region != "" ? [1] : []
-      content {
+    content {
       region_name = var.replica_region
       kms_key_arn = var.kms_key_arn
     }
@@ -27,11 +27,11 @@ resource "aws_dynamodb_table" "this" {
 resource "aws_lambda_event_source_mapping" "dynamodb_trigger_mapping" {
   for_each = var.lambda_event_sources
 
-  event_source_arn = aws_dynamodb_table.this.stream_arn
-  function_name    = each.value.function_name
+  event_source_arn  = aws_dynamodb_table.this.stream_arn
+  function_name     = each.value.function_name
   starting_position = lookup(each.value, "starting_position", "LATEST")
-  enabled          = lookup(each.value, "enabled", true)
-  batch_size       = lookup(each.value, "batch_size", 10)
+  enabled           = lookup(each.value, "enabled", true)
+  batch_size        = lookup(each.value, "batch_size", 10)
 }
 
 output "table_arn" {

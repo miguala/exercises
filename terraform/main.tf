@@ -30,12 +30,12 @@ module "contacts_table" {
   stream_enabled   = true
   stream_view_type = var.stream_view_type
   tags             = local.common_tags
-   lambda_event_sources = {
-        dynamodb_trigger = {
-           function_name = module.dynamodb_trigger_lambda.function_name
-           starting_position = "LATEST"
-        }
-   }
+  lambda_event_sources = {
+    dynamodb_trigger = {
+      function_name     = module.dynamodb_trigger_lambda.function_name
+      starting_position = "LATEST"
+    }
+  }
 }
 
 # Cognito User Pool for authentication
