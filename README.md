@@ -1,27 +1,41 @@
-# Terraform Project: Gestión de Infraestructura como Código
+# Proyecto Terraform con AWS Lambda, DynamoDB, SNS, API Gateway y Cognito
+![Texto alternativo](diagram.png)
 
-Este repositorio contiene la configuración de Terraform para desplegar recursos en AWS. La estructura está diseñada para ser modular y flexible, permitiendo la gestión de múltiples entornos (dev, staging, prod) y países (arg, bra, etc.) mediante archivos de variables (.tfvars).
+## Arquitectura
 
-## Estructura del Proyecto
+El proyecto sigue la siguiente arquitectura:
 
-```
-.
-├── main.tf                  # Configuración principal de recursos
-├── variables.tf             # Variables globales con valores por defecto
-├── dev-arg.tfvars           # Valores específicos para dev en Argentina
-├── prod-bra.tfvars          # Valores específicos para prod en Brasil
-├── modules/                 # Módulos reutilizables
-└── providers.tf             # Configuración de proveedores
-```
+- **API Gateway**: Gestiona las solicitudes HTTP y las redirige a las funciones Lambda.
+- **AWS Lambda**: Contiene funciones para crear y obtener contenido.
+- **DynamoDB**: Base de datos NoSQL utilizada para almacenar los datos.
+- **SNS (Simple Notification Service)**: Sistema de notificaciones para eventos de la base de datos.
+- **Cognito**: Servicio de autenticación para gestionar usuarios.
 
-## Uso de Archivos .tfvars
+## Recursos Implementados con Terraform
 
-Los archivos `.tfvars` permiten definir valores específicos para las variables declaradas en `variables.tf`. Esto facilita la gestión de diferentes entornos y configuraciones sin modificar el código base.
+El proyecto define los siguientes módulos en Terraform:
 
-## Cómo Usar los Archivos .tfvars
+- **DynamoDB**: Una tabla para almacenar contactos con un stream habilitado.
+- **API Gateway**: Configurado con rutas para la creación y recuperación de contactos.
+- **Lambda Functions**:
+  - `create_contact`: Inserta un nuevo contacto en DynamoDB.
+  - `get_contact`: Recupera un contacto por ID desde DynamoDB.
+  - `dynamodb_trigger`: Procesa eventos del stream de DynamoDB y publica en SNS.
+  - `sns_trigger`: Escucha eventos de SNS y actualiza DynamoDB.
+- **SNS Topic**: Para recibir eventos de actualizaciones de DynamoDB.
+- **Cognito User Pool**: Para autenticación mediante JWT.
 
-Para aplicar la configuración de Terraform con un archivo `.tfvars` específico, utiliza el siguiente comando:
+## Despliegue
 
-```bash
-terraform apply -var-file="<nombre-del-archivo>.tfvars"
-```
+1. Clonar el repositorio.
+2. Modificar las variables en `terraform.tfvars`.
+3. Ejecutar los siguientes comandos:
+   ```sh
+   terraform init -var-file="env/dev/ar.tfvars"
+   terraform plan -var-file="env/dev/ar.tfvars"
+   terraform apply -auto-approve -var-file="env/dev/ar.tfvars"
+   ```
+4. Para eliminar la infraestructura:
+   ```sh
+   terraform destroy -auto-approve -var-file="env/dev/ar.tfvars"
+   ```
