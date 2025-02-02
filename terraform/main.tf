@@ -11,6 +11,7 @@ provider "aws" {
   region = var.region
 }
 
+# Common tags for all resources
 locals {
   common_tags = {
     Product     = var.product
@@ -19,13 +20,10 @@ locals {
   }
 }
 
-# Módulo DynamoDB
+# DynamoDB table for contacts
 module "contacts_table" {
   source           = "./modules/dynamodb"
-  table_name       = "contacts"
-  country          = var.country
-  product          = var.product
-  environment      = var.environment
+  table_name       = "${var.country}-${var.product}-${var.environment}-contacts"
   billing_mode     = var.billing_mode
   hash_key         = var.hash_key
   stream_enabled   = true
@@ -33,25 +31,49 @@ module "contacts_table" {
   tags             = local.common_tags
 }
 
-# Módulo SNS
-module "sns_topic" {
-  source      = "./modules/sns"
-  topic_name  = "contacts"
-  country     = var.country
-  product     = var.product
-  environment = var.environment
-  tags        = local.common_tags
+# Cognito User Pool for authentication
+module "cognito" {
+  source         = "./modules/cognito"
+  user_pool_name = "${var.country}-${var.product}-${var.environment}-user-pool"
+  client_name    = "${var.country}-${var.product}-${var.environment}-client"
+  api_gateway_id = module.api_gateway.api_id
+  region         = var.region
+  environment    = var.environment
+  tags           = local.common_tags
 }
 
+# API Gateway configuration
+module "api_gateway" {
+  source             = "./modules/api-gateway"
+  api_name           = "${var.country}-${var.product}-${var.environment}-api"
+  cors_enabled       = true
+  log_retention_days = var.log_retention_days
+  tags               = local.common_tags
 
+  routes = {
+    "create_contact" = {
+      method      = "POST"
+      path        = "/contacts"
+      lambda_arn  = module.lambda_create.function_arn
+      lambda_name = module.lambda_create.function_name
+      # authorization = "JWT"
+      # authorizer_id = module.cognito.authorizer_id
+    }
+    "get_contact" = {
+      method      = "GET"
+      path        = "/contacts/{id}"
+      lambda_arn  = module.lambda_get.function_arn
+      lambda_name = module.lambda_get.function_name
+      # authorization = "JWT"
+      # authorizer_id = module.cognito.authorizer_id
+    }
+  }
+}
 
-# Módulo Lambda (Create Contact)
+# Lambda functions for API endpoints
 module "lambda_create" {
   source                 = "./modules/lambda"
-  function_name          = "create-contact"
-  country                = var.country
-  product                = var.product
-  environment            = var.environment
+  function_name          = "${var.country}-${var.product}-${var.environment}-create-contact"
   filename               = "./../bin/create-contact.zip"
   memory_size            = var.lambda_memory_size
   timeout                = var.lambda_timeout
@@ -61,16 +83,13 @@ module "lambda_create" {
   environment_variables = {
     TABLE_NAME = module.contacts_table.table_name
   }
-  tags = local.common_tags
+  log_retention_days = var.log_retention_days
+  tags               = local.common_tags
 }
 
-# Módulo Lambda (Get Contact)
 module "lambda_get" {
   source                 = "./modules/lambda"
-  function_name          = "get-contact"
-  country                = var.country
-  product                = var.product
-  environment            = var.environment
+  function_name          = "${var.country}-${var.product}-${var.environment}-get-contact"
   filename               = "./../bin/get-contact.zip"
   memory_size            = var.lambda_memory_size
   timeout                = var.lambda_timeout
@@ -80,58 +99,32 @@ module "lambda_get" {
   environment_variables = {
     TABLE_NAME = module.contacts_table.table_name
   }
-  tags = local.common_tags
-}
-
-# Módulo Cognito
-module "cognito" {
-  source         = "./modules/cognito"
-  user_pool_name = "${var.country}-${var.product}-${var.environment}-user-pool"
-  client_name    = "${var.country}-${var.product}-${var.environment}-client"
-  api_gateway_id = module.api_gateway.api_id
-  region         = var.region
-  tags           = local.common_tags
-  environment    = var.environment
-}
-
-# Módulo API Gateway
-module "api_gateway" {
-  source             = "./modules/api-gateway"
-  country            = var.country
-  product            = var.product
-  environment        = var.environment
-  api_name           = "api"
-  cors_enabled       = true
   log_retention_days = var.log_retention_days
-
-  # Definición dinámica de rutas
-  routes = {
-    "create_contact" = {
-      method      = "POST"
-      path        = "/contacts"
-      lambda_arn  = module.lambda_create.function_arn
-      lambda_name = module.lambda_create.function_name
-    }
-    "get_contact" = {
-      method        = "GET"
-      path          = "/contacts/{id}"
-      lambda_arn    = module.lambda_get.function_arn
-      lambda_name   = module.lambda_get.function_name
-      authorization = "JWT"
-      authorizer_id = module.cognito.authorizer_id
-    }
-  }
-
-  tags = local.common_tags
+  tags               = local.common_tags
 }
 
-# Módulo Lambda (DynamoDB Trigger)
+# SNS Topic for notifications
+module "sns_topic" {
+  source      = "./modules/sns"
+  topic_name  = "${var.country}-${var.product}-${var.environment}-contacts"
+  country     = var.country
+  product     = var.product
+  environment = var.environment
+  tags        = local.common_tags
+
+  lambda_subscriptions = {
+    sns_trigger = {
+      function_name = module.sns_trigger_lambda.function_name
+      function_arn  = module.sns_trigger_lambda.function_arn
+    }
+    # Add more Lambda subscriptions here if needed
+  }
+}
+
+# Lambda function for DynamoDB Stream processing
 module "dynamodb_trigger_lambda" {
   source                 = "./modules/lambda"
-  function_name          = "dynamodb-trigger"
-  country                = var.country
-  product                = var.product
-  environment            = var.environment
+  function_name          = "${var.country}-${var.product}-${var.environment}-dynamodb-trigger"
   filename               = "./../bin/dynamodb-trigger.zip"
   memory_size            = var.lambda_memory_size
   timeout                = var.lambda_timeout
@@ -146,20 +139,16 @@ module "dynamodb_trigger_lambda" {
   enable_sns_access  = true
   sns_topic_arn      = module.sns_topic.topic_arn
   environment_variables = {
-    TABLE_NAME    = module.contacts_table.table_name
     SNS_TOPIC_ARN = module.sns_topic.topic_arn
   }
-  tags = local.common_tags
+  log_retention_days = var.log_retention_days
+  tags               = local.common_tags
 }
 
-
-# Módulo Lambda (SNS Trigger)
+# Lambda function for SNS message processing
 module "sns_trigger_lambda" {
   source                 = "./modules/lambda"
-  function_name          = "sns-trigger"
-  country                = var.country
-  product                = var.product
-  environment            = var.environment
+  function_name          = "${var.country}-${var.product}-${var.environment}-sns-trigger"
   filename               = "./../bin/sns-trigger.zip"
   memory_size            = var.lambda_memory_size
   timeout                = var.lambda_timeout
@@ -169,26 +158,6 @@ module "sns_trigger_lambda" {
   environment_variables = {
     TABLE_NAME = module.contacts_table.table_name
   }
-  tags = local.common_tags
-}
-
-
-resource "aws_lambda_event_source_mapping" "dynamodb_stream" {
-  event_source_arn  = module.contacts_table.table_stream_arn
-  function_name     = module.dynamodb_trigger_lambda.function_arn
-  starting_position = "LATEST"
-}
-
-resource "aws_sns_topic_subscription" "sns_trigger_sub" {
-  topic_arn = module.sns_topic.topic_arn
-  protocol  = "lambda"
-  endpoint  = module.sns_trigger_lambda.function_arn
-}
-
-resource "aws_lambda_permission" "sns_trigger" {
-  statement_id  = "AllowExecutionFromSNS"
-  action        = "lambda:InvokeFunction"
-  function_name = module.sns_trigger_lambda.function_name
-  principal     = "sns.amazonaws.com"
-  source_arn    = module.sns_topic.topic_arn
+  log_retention_days = var.log_retention_days
+  tags               = local.common_tags
 }
