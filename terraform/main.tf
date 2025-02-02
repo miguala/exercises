@@ -18,6 +18,7 @@ locals {
     Environment = var.environment
     Terraform   = "true"
   }
+  prefix = "${var.country}-${var.product}-${var.environment}"
 }
 
 # DynamoDB table for contacts
@@ -29,13 +30,19 @@ module "contacts_table" {
   stream_enabled   = true
   stream_view_type = var.stream_view_type
   tags             = local.common_tags
+   lambda_event_sources = {
+        dynamodb_trigger = {
+           function_name = module.dynamodb_trigger_lambda.function_name
+           starting_position = "LATEST"
+        }
+   }
 }
 
 # Cognito User Pool for authentication
 module "cognito" {
   source         = "./modules/cognito"
-  user_pool_name = "${var.country}-${var.product}-${var.environment}-user-pool"
-  client_name    = "${var.country}-${var.product}-${var.environment}-client"
+  user_pool_name = "${local.prefix}-user-pool"
+  client_name    = "${local.prefix}-client"
   api_gateway_id = module.api_gateway.api_id
   region         = var.region
   environment    = var.environment
@@ -45,7 +52,7 @@ module "cognito" {
 # API Gateway configuration
 module "api_gateway" {
   source             = "./modules/api-gateway"
-  api_name           = "${var.country}-${var.product}-${var.environment}-api"
+  api_name           = "${local.prefix}-api"
   cors_enabled       = true
   log_retention_days = var.log_retention_days
   tags               = local.common_tags
@@ -73,7 +80,7 @@ module "api_gateway" {
 # Lambda functions for API endpoints
 module "lambda_create" {
   source                 = "./modules/lambda"
-  function_name          = "${var.country}-${var.product}-${var.environment}-create-contact"
+  function_name          = "${local.prefix}-create-contact"
   filename               = "./../bin/create-contact.zip"
   memory_size            = var.lambda_memory_size
   timeout                = var.lambda_timeout
@@ -89,7 +96,7 @@ module "lambda_create" {
 
 module "lambda_get" {
   source                 = "./modules/lambda"
-  function_name          = "${var.country}-${var.product}-${var.environment}-get-contact"
+  function_name          = "${local.prefix}-get-contact"
   filename               = "./../bin/get-contact.zip"
   memory_size            = var.lambda_memory_size
   timeout                = var.lambda_timeout
@@ -106,7 +113,7 @@ module "lambda_get" {
 # SNS Topic for notifications
 module "sns_topic" {
   source      = "./modules/sns"
-  topic_name  = "${var.country}-${var.product}-${var.environment}-contacts"
+  topic_name  = "${local.prefix}-contacts"
   country     = var.country
   product     = var.product
   environment = var.environment
@@ -124,7 +131,7 @@ module "sns_topic" {
 # Lambda function for DynamoDB Stream processing
 module "dynamodb_trigger_lambda" {
   source                 = "./modules/lambda"
-  function_name          = "${var.country}-${var.product}-${var.environment}-dynamodb-trigger"
+  function_name          = "${local.prefix}-dynamodb-trigger"
   filename               = "./../bin/dynamodb-trigger.zip"
   memory_size            = var.lambda_memory_size
   timeout                = var.lambda_timeout
@@ -148,7 +155,7 @@ module "dynamodb_trigger_lambda" {
 # Lambda function for SNS message processing
 module "sns_trigger_lambda" {
   source                 = "./modules/lambda"
-  function_name          = "${var.country}-${var.product}-${var.environment}-sns-trigger"
+  function_name          = "${local.prefix}-sns-trigger"
   filename               = "./../bin/sns-trigger.zip"
   memory_size            = var.lambda_memory_size
   timeout                = var.lambda_timeout
@@ -160,12 +167,4 @@ module "sns_trigger_lambda" {
   }
   log_retention_days = var.log_retention_days
   tags               = local.common_tags
-}
-
-resource "aws_lambda_event_source_mapping" "dynamodb_trigger_mapping" {
-  event_source_arn = module.contacts_table.table_stream_arn
-  function_name    = module.dynamodb_trigger_lambda.function_name
-  starting_position = "LATEST" # o "TRIM_HORIZON" para procesar todos los registros anteriores
-  enabled          = true
-  batch_size       = 10  # Número de registros por lote para cada invocación (ajustar según sea necesario)
 }

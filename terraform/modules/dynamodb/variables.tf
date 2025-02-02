@@ -1,34 +1,49 @@
 variable "table_name" {
-  description = "Name of the DynamoDB table"
-  type        = string
+  type = string
 }
 
 variable "billing_mode" {
-  description = "Billing mode for the table"
-  type        = string
-  default     = "PAY_PER_REQUEST"
+  type = string
+  default = "PAY_PER_REQUEST"
 }
 
 variable "hash_key" {
-  description = "Hash key for the table"
-  type        = string
-  default     = "id"
+    type = string
 }
 
 variable "stream_enabled" {
-  description = "Enable DynamoDB Streams"
-  type        = bool
-  default     = false
+  type    = bool
+  default = false
 }
 
 variable "stream_view_type" {
-  description = "Stream view type"
-  type        = string
-  default     = "NEW_IMAGE"
+  type    = string
+  default = "NEW_AND_OLD_IMAGES"
 }
 
 variable "tags" {
-  description = "Resource tags"
-  type        = map(string)
-  default     = {}
+  type = map(string)
+  default = {}
+}
+
+variable "lambda_event_sources" {
+    type = map(object({
+        function_name = string
+        starting_position = optional(string)
+        enabled = optional(bool)
+        batch_size = optional(number)
+    }))
+    default = {}
+    description = "Map of lambda functions that will be subscribed to the dynamoDB stream."
+}
+variable "replica_region" {
+  type        = string
+  description = "The region where the DynamoDB table replica will be created."
+  default = ""
+}
+
+variable "kms_key_arn" {
+  type        = string
+  description = "The ARN of the KMS key that will be used to encrypt the replica"
+  default     = ""
 }
