@@ -68,43 +68,6 @@ resource "aws_lambda_permission" "lambda_permission" {
   source_arn    = "${aws_apigatewayv2_api.api.execution_arn}/*/*"
 }
 
-# modules/api-gateway/variables.tf
-variable "api_name" {
-  description = "Name of the API Gateway"
-  type        = string
-}
-
-variable "cors_enabled" {
-  description = "Enable CORS"
-  type        = bool
-  default     = false
-}
-
-variable "log_retention_days" {
-  description = "Log retention period in days"
-  type        = number
-  default     = 7
-}
-
-variable "routes" {
-  description = "Map of API routes and their configurations"
-  type = map(object({
-    method        = string
-    path          = string
-    lambda_arn    = string
-    lambda_name   = string
-    authorization = optional(string)
-    authorizer_id = optional(string)
-  }))
-}
-
-variable "tags" {
-  description = "Resource tags"
-  type        = map(string)
-  default     = {}
-}
-
-# modules/api-gateway/outputs.tf
 output "api_id" {
   value = aws_apigatewayv2_api.api.id
 }

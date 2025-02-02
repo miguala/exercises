@@ -161,3 +161,11 @@ module "sns_trigger_lambda" {
   log_retention_days = var.log_retention_days
   tags               = local.common_tags
 }
+
+resource "aws_lambda_event_source_mapping" "dynamodb_trigger_mapping" {
+  event_source_arn = module.contacts_table.table_stream_arn
+  function_name    = module.dynamodb_trigger_lambda.function_name
+  starting_position = "LATEST" # o "TRIM_HORIZON" para procesar todos los registros anteriores
+  enabled          = true
+  batch_size       = 10  # Número de registros por lote para cada invocación (ajustar según sea necesario)
+}
