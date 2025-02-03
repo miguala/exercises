@@ -9,6 +9,13 @@ remote_state {
   }
 }
 
+locals {
+  aws_region  = "us-east-1"
+  environment = "dev"
+  product     = "my-product"
+  country     = "us"
+}
+
 generate "provider" {
   path      = "provider.tf"
   if_exists = "overwrite_terragrunt"
