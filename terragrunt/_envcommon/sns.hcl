@@ -3,5 +3,5 @@ terraform {
 }
 
 inputs = {
-  # Common SNS configurations
+  # Configuraciones comunes para SNS
 }

@@ -3,5 +3,5 @@ terraform {
 }
 
 inputs = {
-  # Common Cognito configurations
+  # Configuraciones comunes para Cognito
 }

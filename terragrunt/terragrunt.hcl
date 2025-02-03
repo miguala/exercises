@@ -9,14 +9,13 @@ remote_state {
   }
 }
 
-# Configure Terragrunt to automatically store tfstate files in an S3 bucket
 generate "provider" {
   path      = "provider.tf"
   if_exists = "overwrite_terragrunt"
   contents  = <<EOF
 provider "aws" {
   region = "${local.aws_region}"
-  
+
   default_tags {
     tags = {
       Environment = "${local.environment}"

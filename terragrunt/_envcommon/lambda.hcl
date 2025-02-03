@@ -3,7 +3,7 @@ terraform {
 }
 
 inputs = {
-  memory_size = 128
-  timeout     = 30
+  memory_size       = 128
+  timeout           = 30
   log_retention_days = 14
 }

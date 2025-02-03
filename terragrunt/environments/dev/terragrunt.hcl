@@ -1,6 +1,8 @@
 locals {
   environment = "dev"
   product     = "onboarding"
-  country     = "ar"
   aws_region  = "us-east-1"
+
+  # País se obtiene del workspace
+  country = get_workspace()
 }
