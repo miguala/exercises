@@ -24,7 +24,7 @@ locals {
 # DynamoDB table for contacts
 module "contacts_table" {
   source           = "./modules/dynamodb"
-  table_name       = "${var.country}-${var.product}-${var.environment}-contacts"
+  table_name       = "${local.prefix}-contacts"
   billing_mode     = var.billing_mode
   hash_key         = var.hash_key
   stream_enabled   = true
