@@ -1,5 +1,6 @@
 inputs = {
   environment        = "dev"
+  product            = "onboarding"
   region             = "us-east-1"
   billing_mode       = "PAY_PER_REQUEST"
   hash_key           = "id"

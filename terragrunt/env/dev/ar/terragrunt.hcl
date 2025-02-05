@@ -12,5 +12,5 @@ terraform {
 
 inputs = {
   country = "ar"
-  product = "onboarding"
+
 }
