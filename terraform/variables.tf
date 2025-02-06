@@ -1,4 +1,3 @@
-# Required variables
 variable "region" {
   description = "AWS region"
   type        = string
@@ -35,41 +34,77 @@ variable "product" {
   default     = "onboarding"
 }
 
-# DynamoDB configuration
-variable "billing_mode" {
-  description = "DynamoDB billing mode"
-  type        = string
-  default     = "PAY_PER_REQUEST"
+variable "dynamo" {
+  description = "Configuración de DynamoDB"
+  type = object({
+    billing_mode     = string
+    hash_key         = string
+    stream_view_type = string
+  })
+  default = {
+    billing_mode     = "PAY_PER_REQUEST"
+    hash_key         = "id"
+    stream_view_type = "NEW_IMAGE"
+  }
+
+  validation {
+    condition     = contains(["PAY_PER_REQUEST", "PROVISIONED"], var.dynamo.billing_mode)
+    error_message = "Billing mode must be 'PAY_PER_REQUEST' or 'PROVISIONED'"
+  }
+
+  validation {
+    condition     = contains(["NEW_IMAGE", "OLD_IMAGE", "NEW_AND_OLD_IMAGES", "KEYS_ONLY"], var.dynamo.stream_view_type)
+    error_message = "Stream view type must be 'NEW_IMAGE', 'OLD_IMAGE', 'NEW_AND_OLD_IMAGES' or 'KEYS_ONLY'"
+  }
 }
 
-variable "hash_key" {
-  description = "DynamoDB table hash key"
-  type        = string
-  default     = "id"
+variable "lambdas" {
+  description = "Configuraciones de las Lambdas"
+  type = map(object({
+    memory_size        = number
+    timeout           = number
+    log_retention_days = number
+  }))
+  default = {
+    create_contact = {
+      memory_size        = 128
+      timeout           = 10
+      log_retention_days = 7
+    }
+    get_contact = {
+      memory_size        = 128
+      timeout           = 10
+      log_retention_days = 7
+    }
+    dynamodb_trigger_lambda = {
+      memory_size        = 128
+      timeout           = 10
+      log_retention_days = 7
+    }
+    sns_trigger_lambda = {
+      memory_size        = 128
+      timeout           = 10
+      log_retention_days = 7
+    }
+    
+  }
 }
 
-variable "stream_view_type" {
-  description = "DynamoDB stream view type"
-  type        = string
-  default     = "NEW_IMAGE"
+variable "api_gateway" {
+  description = "Configuración de API Gateway"
+  type = object({
+    cors_enabled       = bool
+    log_retention_days = number
+  })
+  default = {
+    cors_enabled       = true
+    log_retention_days = 7
+  }
 }
 
-# Lambda configuration
-variable "lambda_memory_size" {
-  description = "Lambda memory size (MB)"
-  type        = number
-  default     = 128
+variable "tags" {
+  description = "Tags"
+  type        = map(string)
+  default     = {}
 }
 
-variable "lambda_timeout" {
-  description = "Lambda timeout (seconds)"
-  type        = number
-  default     = 10
-}
-
-# Logging configuration
-variable "log_retention_days" {
-  description = "CloudWatch log retention (days)"
-  type        = number
-  default     = 7
-}

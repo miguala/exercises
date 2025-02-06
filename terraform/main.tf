@@ -13,11 +13,6 @@ provider "aws" {
 
 # Common tags for all resources
 locals {
-  common_tags = {
-    Product     = var.product
-    Environment = var.environment
-    Terraform   = "true"
-  }
   prefix = "${var.country}-${var.product}-${var.environment}"
 }
 
@@ -25,11 +20,11 @@ locals {
 module "contacts_table" {
   source           = "./modules/dynamodb"
   table_name       = "${local.prefix}-contacts"
-  billing_mode     = var.billing_mode
-  hash_key         = var.hash_key
+  billing_mode     = var.dynamo.billing_mode
+  hash_key         = var.dynamo.hash_key
   stream_enabled   = true
-  stream_view_type = var.stream_view_type
-  tags             = local.common_tags
+  stream_view_type = var.dynamo.stream_view_type
+  tags             = var.tags
   lambda_event_sources = {
     dynamodb_trigger = {
       function_name     = module.dynamodb_trigger_lambda.function_name
@@ -46,7 +41,7 @@ module "cognito" {
   api_gateway_id = module.api_gateway.api_id
   region         = var.region
   environment    = var.environment
-  tags           = local.common_tags
+  tags           = var.tags
 }
 
 # API Gateway configuration
@@ -54,8 +49,8 @@ module "api_gateway" {
   source             = "./modules/api-gateway"
   api_name           = "${local.prefix}-api"
   cors_enabled       = true
-  log_retention_days = var.log_retention_days
-  tags               = local.common_tags
+  log_retention_days = var.api_gateway.log_retention_days
+  tags               = var.tags
 
   routes = {
     "create_contact" = {
@@ -82,32 +77,32 @@ module "lambda_create" {
   source                 = "./modules/lambda"
   function_name          = "${local.prefix}-create-contact"
   filename               = "./../bin/create-contact.zip"
-  memory_size            = var.lambda_memory_size
-  timeout                = var.lambda_timeout
+  memory_size            = var.lambdas.create_contact.memory_size
+  timeout                = var.lambdas.create_contact.timeout
   enable_dynamodb_access = true
   dynamodb_actions       = ["dynamodb:PutItem"]
   dynamodb_table_arn     = module.contacts_table.table_arn
   environment_variables = {
     TABLE_NAME = module.contacts_table.table_name
   }
-  log_retention_days = var.log_retention_days
-  tags               = local.common_tags
+  log_retention_days = var.lambdas.create_contact.log_retention_days
+  tags               = var.tags
 }
 
 module "lambda_get" {
   source                 = "./modules/lambda"
   function_name          = "${local.prefix}-get-contact"
   filename               = "./../bin/get-contact.zip"
-  memory_size            = var.lambda_memory_size
-  timeout                = var.lambda_timeout
+  memory_size            = var.lambdas.get_contact.memory_size
+  timeout                = var.lambdas.get_contact.timeout
   enable_dynamodb_access = true
   dynamodb_actions       = ["dynamodb:GetItem"]
   dynamodb_table_arn     = module.contacts_table.table_arn
   environment_variables = {
     TABLE_NAME = module.contacts_table.table_name
   }
-  log_retention_days = var.log_retention_days
-  tags               = local.common_tags
+  log_retention_days = var.lambdas.get_contact.log_retention_days
+  tags               = var.tags
 }
 
 # SNS Topic for notifications
@@ -117,7 +112,7 @@ module "sns_topic" {
   country     = var.country
   product     = var.product
   environment = var.environment
-  tags        = local.common_tags
+  tags        = var.tags
 
   lambda_subscriptions = {
     sns_trigger = {
@@ -133,8 +128,8 @@ module "dynamodb_trigger_lambda" {
   source                 = "./modules/lambda"
   function_name          = "${local.prefix}-dynamodb-trigger"
   filename               = "./../bin/dynamodb-trigger.zip"
-  memory_size            = var.lambda_memory_size
-  timeout                = var.lambda_timeout
+  memory_size            = var.lambdas.dynamodb_trigger_lambda.memory_size
+  timeout                = var.lambdas.dynamodb_trigger_lambda.timeout
   enable_dynamodb_access = true
   dynamodb_actions = [
     "dynamodb:GetRecords",
@@ -148,8 +143,8 @@ module "dynamodb_trigger_lambda" {
   environment_variables = {
     SNS_TOPIC_ARN = module.sns_topic.topic_arn
   }
-  log_retention_days = var.log_retention_days
-  tags               = local.common_tags
+  log_retention_days = var.lambdas.dynamodb_trigger_lambda.log_retention_days
+  tags               = var.tags
 }
 
 # Lambda function for SNS message processing
@@ -157,14 +152,14 @@ module "sns_trigger_lambda" {
   source                 = "./modules/lambda"
   function_name          = "${local.prefix}-sns-trigger"
   filename               = "./../bin/sns-trigger.zip"
-  memory_size            = var.lambda_memory_size
-  timeout                = var.lambda_timeout
+  memory_size            = var.lambdas.sns_trigger_lambda.memory_size
+  timeout                = var.lambdas.sns_trigger_lambda.timeout
   enable_dynamodb_access = true
   dynamodb_actions       = ["dynamodb:UpdateItem"]
   dynamodb_table_arn     = module.contacts_table.table_arn
   environment_variables = {
     TABLE_NAME = module.contacts_table.table_name
   }
-  log_retention_days = var.log_retention_days
-  tags               = local.common_tags
+  log_retention_days = var.lambdas.sns_trigger_lambda.log_retention_days
+  tags               = var.tags
 }
