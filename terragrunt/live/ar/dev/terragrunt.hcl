@@ -7,8 +7,7 @@ include {
 
 # Referenciamos el módulo que contiene la configuración completa (tu archivo Terraform)
 terraform {
-  # Ajusta la ruta para apuntar a donde tengas definido el módulo principal
-  source = "../../../main.tf"
+ source = "../../../"
 }
 
 inputs = {

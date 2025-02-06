@@ -1,6 +1,7 @@
 # Required variables
 variable "region" {
   description = "AWS region"
+  default     = "us-east-1"
   type        = string
   validation {
     condition     = can(regex("^[a-z]{2}-[a-z]+-[0-9]$", var.region))
@@ -11,6 +12,7 @@ variable "region" {
 variable "country" {
   description = "Country code"
   type        = string
+  default     = "ar"
   validation {
     condition     = contains(["ar", "co", "mx"], var.country)
     error_message = "Country must be 'ar', 'co' or 'mx'"
@@ -20,6 +22,7 @@ variable "country" {
 variable "environment" {
   description = "Environment (dev, staging, prod)"
   type        = string
+  default     = "dev"
   validation {
     condition     = contains(["dev", "staging", "prod"], var.environment)
     error_message = "Environment must be 'dev', 'staging' or 'prod'"
