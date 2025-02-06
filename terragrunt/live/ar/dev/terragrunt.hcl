@@ -1,19 +1,54 @@
-# live/ar/dev/terragrunt.hcl
-
-# Incluimos la configuración común desde el archivo raíz (common.hcl)
 include {
   path = find_in_parent_folders("common.hcl")
 }
 
-# Referenciamos el módulo que contiene la configuración completa (tu archivo Terraform)
+# Referenciamos el main.tf de icc
 terraform {
- source = "../../../"
+  source = "../../.."
 }
 
 inputs = {
-  # Variables específicas para este ambiente
-  country     = "ar"
-  environment = "dev"
-  
-  # Si necesitas sobrescribir o agregar otros valores, hazlo aquí.
+
+  dynamo = {
+    billing_mode     = "PAY_PER_REQUEST"
+    hash_key         = "id"
+    stream_view_type = "NEW_IMAGE"
+  }
+
+  lambdas = {
+    create_contact = {
+      memory_size        = 128
+      timeout            = 10
+      log_retention_days = 7
+    }
+    get_contact = {
+      memory_size        = 128
+      timeout            = 10
+      log_retention_days = 7
+    }
+    dynamodb_trigger_lambda = {
+      memory_size        = 128
+      timeout            = 10
+      log_retention_days = 7
+    }
+    sns_trigger_lambda = {
+      memory_size        = 128
+      timeout            = 10
+      log_retention_days = 7
+    }
+  }
+
+  api_gateway = {
+    cors_enabled       = true
+    log_retention_days = 7
+  }
+
+  tags = {
+    product     = "onboarding"
+    environment = "dev"
+    country     = "ar"
+    owner       = "terraform"
+  }
 }
+
+

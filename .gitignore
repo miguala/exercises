@@ -62,6 +62,7 @@ debug
 # Archivos de configuración local
 terraform.tfvars
 *.auto.tfvars
+**/.terragrunt-cache
 
 # Archivos de logs
 *.log
